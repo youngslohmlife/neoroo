@@ -17,19 +17,19 @@ local windows = {
 
 -- Initialize UI components
 function M.setup()
-  -- Create highlight groups
-  vim.api.nvim_set_hl(0, 'NeorooHeader', { bold = true, fg = '#7CCDEA' })
-  vim.api.nvim_set_hl(0, 'NeorooUserMessage', { fg = '#B0A5F5' })
-  vim.api.nvim_set_hl(0, 'NeorooAIMessage', { fg = '#7CCDEA' })
-  vim.api.nvim_set_hl(0, 'NeorooError', { fg = '#F97583' })
-  vim.api.nvim_set_hl(0, 'NeorooSuccess', { fg = '#7CE3A1' })
-  vim.api.nvim_set_hl(0, 'NeorooWarning', { fg = '#E6B673' })
+  -- Create highlight groups with darker, more readable colors
+  vim.api.nvim_set_hl(0, 'NeorooHeader', { bold = true, fg = '#FFFFFF' })
+  vim.api.nvim_set_hl(0, 'NeorooUserMessage', { fg = '#FFFFFF' })
+  vim.api.nvim_set_hl(0, 'NeorooAIMessage', { fg = '#FFFFFF' })
+  vim.api.nvim_set_hl(0, 'NeorooError', { fg = '#FF6666' })
+  vim.api.nvim_set_hl(0, 'NeorooSuccess', { fg = '#66FF66' })
+  vim.api.nvim_set_hl(0, 'NeorooWarning', { fg = '#FFCC66' })
   vim.api.nvim_set_hl(0, 'NeorooInfo', { fg = '#FFFFFF' })
   vim.api.nvim_set_hl(0, 'NeorooCodeBlock', { bg = '#1E2132' })
-  vim.api.nvim_set_hl(0, 'NeorooModeCode', { fg = '#7CCDEA' })
-  vim.api.nvim_set_hl(0, 'NeorooModeArchitect', { fg = '#F97583' })
-  vim.api.nvim_set_hl(0, 'NeorooModeDebug', { fg = '#E6B673' })
-  vim.api.nvim_set_hl(0, 'NeorooModeAsk', { fg = '#B0A5F5' })
+  vim.api.nvim_set_hl(0, 'NeorooModeCode', { fg = '#FFFFFF', bold = true })
+  vim.api.nvim_set_hl(0, 'NeorooModeArchitect', { fg = '#FFFFFF', bold = true })
+  vim.api.nvim_set_hl(0, 'NeorooModeDebug', { fg = '#FFFFFF', bold = true })
+  vim.api.nvim_set_hl(0, 'NeorooModeAsk', { fg = '#FFFFFF', bold = true })
   
   -- Create autocommands for UI events
   vim.api.nvim_create_autocmd('User', {
@@ -87,6 +87,13 @@ function M.open_chat()
     vim.api.nvim_win_set_option(windows.chat, 'cursorline', false)
     vim.api.nvim_win_set_option(windows.chat, 'signcolumn', 'no')
     
+    -- Set dark background color for the window
+    vim.api.nvim_win_set_option(windows.chat, 'winhl', 'Normal:NormalFloat,FloatBorder:FloatBorder')
+    
+    -- Create highlight groups for window background
+    vim.api.nvim_set_hl(0, 'NormalFloat', { bg = '#1E2132' }) -- Dark background
+    vim.api.nvim_set_hl(0, 'FloatBorder', { fg = '#FFFFFF', bg = '#1E2132' }) -- White border on dark background
+    
     -- Initialize chat buffer if empty
     if vim.api.nvim_buf_line_count(buf) <= 1 and vim.api.nvim_buf_get_lines(buf, 0, 1, false)[1] == '' then
       M.initialize_chat_buffer(buf)
@@ -115,11 +122,11 @@ function M.initialize_chat_buffer(buf)
   -- Add header
   local current_mode = mode_manager.get_current_mode()
   local header = {
-    '╭──────────────────────────────────────────────────────────────╮',
-    '│                         NEOROO CHAT                          │',
-    '│                                                              │',
-    '│  Mode: ' .. string.format('%-54s', current_mode.name) .. '│',
-    '╰──────────────────────────────────────────────────────────────╯',
+    '┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓',
+    '┃                         NEOROO CHAT                          ┃',
+    '┃                                                              ┃',
+    '┃  Mode: ' .. string.format('%-54s', current_mode.name) .. '┃',
+    '┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛',
     '',
     '-- Type your message below and press Enter to send --',
     '',
@@ -160,7 +167,7 @@ function M.update_chat_header()
   -- Update mode line
   vim.api.nvim_buf_set_option(buf, 'modifiable', true)
   vim.api.nvim_buf_set_lines(buf, 3, 4, false, {
-    '│  Mode: ' .. string.format('%-54s', current_mode.name) .. '│',
+    '┃  Mode: ' .. string.format('%-54s', current_mode.name) .. '┃',
   })
   
   -- Apply mode-specific highlighting
@@ -177,8 +184,14 @@ end
 -- Set keymaps for chat buffer
 ---@param buf number Buffer ID
 function M.set_chat_keymaps(buf)
-  -- Send message on Enter
+  -- Send message on Enter in both normal and insert mode
   vim.api.nvim_buf_set_keymap(buf, 'n', '<CR>', ':lua require("neoroo.ui").send_message()<CR>', {
+    noremap = true,
+    silent = true,
+    desc = 'Send message',
+  })
+  
+  vim.api.nvim_buf_set_keymap(buf, 'i', '<CR>', '<Esc>:lua require("neoroo.ui").send_message()<CR>', {
     noremap = true,
     silent = true,
     desc = 'Send message',
@@ -481,9 +494,9 @@ function M.initialize_config_buffer(buf)
   
   -- Add header
   local header = {
-    '╭──────────────────────────────────────────────────────────────╮',
-    '│                      NEOROO CONFIGURATION                    │',
-    '╰──────────────────────────────────────────────────────────────╯',
+    '┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓',
+    '┃                      NEOROO CONFIGURATION                    ┃',
+    '┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛',
     '',
     'General Settings:',
     '----------------',
