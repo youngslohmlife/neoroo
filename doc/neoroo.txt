@@ -1,0 +1,468 @@
+*neoroo.txt*  Autonomous AI Coding Agent for Neovim
+
+                                                                    *neoroo*
+
+==============================================================================
+CONTENTS                                                     *neoroo-contents*
+
+    1. Introduction ........................... |neoroo-introduction|
+    2. Installation ........................... |neoroo-installation|
+    3. Configuration .......................... |neoroo-configuration|
+    4. Commands ............................... |neoroo-commands|
+    5. Keymaps ................................ |neoroo-keymaps|
+    6. Modes .................................. |neoroo-modes|
+    7. Tools .................................. |neoroo-tools|
+    8. API .................................... |neoroo-api|
+    9. Customization .......................... |neoroo-customization|
+   10. Troubleshooting ........................ |neoroo-troubleshooting|
+
+==============================================================================
+1. INTRODUCTION                                          *neoroo-introduction*
+
+Neoroo is a native Neovim plugin that brings the full power of autonomous AI
+coding capabilities to Neovim users, while respecting and leveraging Neovim's
+modal editing and extensibility model.
+
+Features:
+- Multiple AI providers (OpenAI, Anthropic, custom providers)
+- Specialized modes (Code, Architect, Debug, Ask)
+- Custom mode creation through declarative configuration
+- Memory system for contextual awareness across sessions
+- Modal-first UX adhering to Vim principles
+- Split-window chat interface with proper syntax highlighting
+- Buffer-based interaction model
+- Tree-sitter integration for precise code understanding
+- Tool integration (files, terminal, browser, git, LSP)
+
+==============================================================================
+2. INSTALLATION                                          *neoroo-installation*
+
+Requirements:
+- Neovim 0.9.0 or higher
+- Lua 5.1 or higher (included with Neovim)
+- Optional: Node.js for browser automation
+
+Using packer.nvim:
+>lua
+    use {
+        'username/neoroo',
+        requires = {
+            'nvim-lua/plenary.nvim',
+            'MunifTanjim/nui.nvim',
+            'nvim-treesitter/nvim-treesitter',
+        },
+        config = function()
+            require('neoroo').setup({
+                -- Your configuration here
+            })
+        end
+    }
+<
+
+Using lazy.nvim:
+>lua
+    {
+        'username/neoroo',
+        dependencies = {
+            'nvim-lua/plenary.nvim',
+            'MunifTanjim/nui.nvim',
+            'nvim-treesitter/nvim-treesitter',
+        },
+        config = function()
+            require('neoroo').setup({
+                -- Your configuration here
+            })
+        end
+    }
+<
+
+Using vim-plug:
+>vim
+    Plug 'nvim-lua/plenary.nvim'
+    Plug 'MunifTanjim/nui.nvim'
+    Plug 'nvim-treesitter/nvim-treesitter'
+    Plug 'username/neoroo'
+<
+
+After installation, configure the plugin in your init.lua:
+>lua
+    require('neoroo').setup({
+        -- Your configuration here
+    })
+<
+
+==============================================================================
+3. CONFIGURATION                                        *neoroo-configuration*
+
+Neoroo can be configured through the setup function. Here's an example with
+default values:
+
+>lua
+    require('neoroo').setup({
+        -- General settings
+        debug = false,
+        log_level = 'warn', -- 'debug', 'info', 'warn', 'error'
+        
+        -- UI settings
+        ui = {
+            chat_window = {
+                width = 0.5,      -- 50% of screen width
+                height = 0.8,     -- 80% of screen height
+                position = 'right', -- 'left', 'right', 'top', 'bottom'
+                border = 'rounded', -- 'none', 'single', 'double', 'rounded', 'solid', 'shadow'
+            },
+            floating_window = {
+                border = 'rounded',
+                width = 80,
+                height = 20,
+            },
+            syntax_highlighting = true,
+            icons = {
+                enabled = true,
+                mode = {
+                    code = '󰘧 ',
+                    architect = '󰏗 ',
+                    debug = '󰒕 ',
+                    ask = '󰞋 ',
+                },
+                status = {
+                    thinking = '󰔟 ',
+                    error = '󰀨 ',
+                    success = '󰄬 ',
+                },
+            },
+        },
+        
+        -- AI provider settings
+        providers = {
+            default = 'openai', -- Default provider to use
+            openai = {
+                api_key = nil, -- Set via OPENAI_API_KEY env var or user config
+                model = 'gpt-4',
+                temperature = 0.7,
+                max_tokens = 2000,
+                timeout = 30, -- seconds
+            },
+            anthropic = {
+                api_key = nil, -- Set via ANTHROPIC_API_KEY env var or user config
+                model = 'claude-3-opus-20240229',
+                temperature = 0.7,
+                max_tokens = 2000,
+                timeout = 30, -- seconds
+            },
+            -- Support for custom providers
+            custom = {},
+        },
+        
+        -- Mode settings
+        modes = {
+            default = 'code', -- Default mode to start with
+            -- Built-in modes
+            code = {
+                prompt_template = "You are an expert software engineer. Help me with the following code:\n\n{context}\n\n{input}",
+                tools = { 'file', 'terminal', 'lsp', 'git' },
+            },
+            architect = {
+                prompt_template = "You are an experienced technical leader. Help me design and plan the following:\n\n{context}\n\n{input}",
+                tools = { 'file', 'terminal', 'git' },
+            },
+            debug = {
+                prompt_template = "You are an expert debugger. Help me diagnose and fix the following issue:\n\n{context}\n\n{input}",
+                tools = { 'file', 'terminal', 'lsp', 'git' },
+            },
+            ask = {
+                prompt_template = "You are a knowledgeable assistant. Please answer the following question:\n\n{context}\n\n{input}",
+                tools = { 'file', 'terminal' },
+            },
+            -- Custom modes defined by user
+            custom = {},
+        },
+        
+        -- Tool settings
+        tools = {
+            file = {
+                enabled = true,
+                max_file_size = 1024 * 1024, -- 1MB
+                excluded_patterns = { "node_modules/", ".git/" },
+            },
+            terminal = {
+                enabled = true,
+                shell = vim.o.shell,
+                timeout = 30, -- seconds
+            },
+            lsp = {
+                enabled = true,
+                include_diagnostics = true,
+                include_definitions = true,
+            },
+            git = {
+                enabled = true,
+                include_diff = true,
+                include_blame = true,
+            },
+            browser = {
+                enabled = false, -- Disabled by default as it requires external dependencies
+                command = nil,   -- Command to launch headless browser
+                timeout = 60,    -- seconds
+            },
+            -- Custom tools defined by user
+            custom = {},
+        },
+        
+        -- Memory settings
+        memory = {
+            enabled = true,
+            storage_path = vim.fn.stdpath('data') .. '/neoroo/memory',
+            max_entries = 100,
+            context_window = 10, -- Number of recent interactions to include
+        },
+        
+        -- Keymaps
+        keymaps = {
+            enabled = true,
+            chat_toggle = '<leader>nc',
+            mode_select = '<leader>nm',
+            ask_selection = '<leader>na',
+        },
+    })
+<
+
+==============================================================================
+4. COMMANDS                                                  *neoroo-commands*
+
+Neoroo provides the following commands:
+
+*:NeorooChat* [mode]                                              *:NeorooChat*
+    Open the Neoroo chat interface. If a mode is specified, switch to that
+    mode before opening the chat.
+
+*:NeorooMode* {mode}                                              *:NeorooMode*
+    Switch to the specified mode. Available modes are: code, architect, debug,
+    ask, and any custom modes you've defined.
+
+*:NeorooConfig*                                                  *:NeorooConfig*
+    Open the Neoroo configuration window.
+
+==============================================================================
+5. KEYMAPS                                                    *neoroo-keymaps*
+
+Default keymaps (can be disabled with `vim.g.neoroo_disable_default_keymaps = 1`):
+
+    <leader>nc - Open Neoroo chat
+    <leader>nm - Set Neoroo mode (requires mode name)
+    <leader>na - Ask Neoroo about visual selection (visual mode)
+
+Chat buffer keymaps:
+
+    <CR>        - Send message
+    <leader>nm  - Change mode
+    <leader>nc  - Clear chat
+    <leader>nq  - Close chat
+    <Esc>       - Exit insert mode
+
+==============================================================================
+6. MODES                                                        *neoroo-modes*
+
+Neoroo provides several built-in modes, each specialized for different tasks:
+
+*Code Mode*
+    Expert software engineer mode for coding assistance. Has access to file,
+    terminal, LSP, and git tools.
+
+*Architect Mode*
+    Technical leader mode for design and planning. Has access to file,
+    terminal, and git tools.
+
+*Debug Mode*
+    Expert debugger mode for diagnosing issues. Has access to file, terminal,
+    LSP, and git tools.
+
+*Ask Mode*
+    General assistance mode for questions. Has access to file and terminal
+    tools.
+
+Custom modes can be defined in the configuration:
+
+>lua
+    require('neoroo').setup({
+        modes = {
+            custom = {
+                my_mode = {
+                    name = 'My Mode',
+                    description = 'Custom mode for specific tasks',
+                    icon = '󰛨 ',
+                    color = '#FF5555',
+                    prompt_template = "You are a specialized assistant. Help me with:\n\n{context}\n\n{input}",
+                    tools = { 'file', 'terminal' },
+                    context_strategy = 'minimal',
+                },
+            },
+        },
+    })
+<
+
+You can also register custom modes programmatically:
+
+>lua
+    require('neoroo').register_mode({
+        id = 'my_mode',
+        name = 'My Mode',
+        description = 'Custom mode for specific tasks',
+        icon = '󰛨 ',
+        color = '#FF5555',
+        prompt_template = "You are a specialized assistant. Help me with:\n\n{context}\n\n{input}",
+        tools = { 'file', 'terminal' },
+        context_strategy = 'minimal',
+    })
+<
+
+==============================================================================
+7. TOOLS                                                        *neoroo-tools*
+
+Neoroo provides several built-in tools that can be used by the AI:
+
+*File Tool*
+    Allows reading, writing, and listing files.
+
+*Terminal Tool*
+    Allows executing commands in the terminal.
+
+*LSP Tool*
+    Provides access to LSP features like diagnostics and definitions.
+
+*Git Tool*
+    Provides access to git features like status and diff.
+
+*Browser Tool*
+    Allows controlling a headless browser (requires external dependencies).
+
+Custom tools can be registered programmatically:
+
+>lua
+    require('neoroo').register_tool({
+        id = 'my_tool',
+        name = 'My Tool',
+        description = 'Custom tool for specific tasks',
+        execute = function(args)
+            -- Tool implementation
+            return {
+                success = true,
+                result = 'Tool executed successfully',
+            }
+        end,
+    })
+<
+
+==============================================================================
+8. API                                                            *neoroo-api*
+
+Neoroo provides a Lua API for integration with other plugins:
+
+*setup(opts)*
+    Initialize the plugin with the given options.
+
+*open_chat(mode_name)*
+    Open the chat interface, optionally with the specified mode.
+
+*set_mode(mode_name)*
+    Set the current mode.
+
+*get_current_mode()*
+    Get the current mode information.
+
+*open_config()*
+    Open the configuration window.
+
+*ask_about_selection()*
+    Ask about the current visual selection.
+
+*execute_command(command, context)*
+    Execute a command with the AI.
+
+*register_mode(mode_def)*
+    Register a custom mode.
+
+*register_tool(tool_def)*
+    Register a custom tool.
+
+*register_provider(provider_def)*
+    Register a custom AI provider.
+
+==============================================================================
+9. CUSTOMIZATION                                          *neoroo-customization*
+
+Neoroo is designed to be highly customizable. Here are some examples:
+
+Custom prompt templates:
+>lua
+    require('neoroo').setup({
+        modes = {
+            code = {
+                prompt_template = "You are an expert in {language}. Help me with this code:\n\n{context}\n\n{input}",
+            },
+        },
+    })
+<
+
+Custom UI:
+>lua
+    require('neoroo').setup({
+        ui = {
+            chat_window = {
+                width = 0.7,
+                height = 0.9,
+                position = 'left',
+                border = 'double',
+            },
+        },
+    })
+<
+
+Custom keymaps:
+>lua
+    vim.g.neoroo_disable_default_keymaps = 1
+    require('neoroo').setup({
+        keymaps = {
+            enabled = true,
+            chat_toggle = '<leader>ai',
+            mode_select = '<leader>am',
+            ask_selection = '<leader>as',
+        },
+    })
+<
+
+==============================================================================
+10. TROUBLESHOOTING                                    *neoroo-troubleshooting*
+
+Common issues and solutions:
+
+*API Key Issues*
+    Ensure you've set the API keys for your providers either in the
+    configuration or as environment variables (OPENAI_API_KEY,
+    ANTHROPIC_API_KEY).
+
+*Performance Issues*
+    If you experience performance issues, try:
+    - Reducing the context window size
+    - Disabling unused tools
+    - Using a smaller model
+
+*Browser Tool Issues*
+    The browser tool requires Node.js and a headless browser command. Ensure
+    these are installed and configured correctly.
+
+*LSP Integration Issues*
+    Ensure you have the appropriate language servers installed and configured
+    for LSP integration to work properly.
+
+*Debugging*
+    Enable debug mode for more detailed logging:
+>lua
+    require('neoroo').setup({
+        debug = true,
+        log_level = 'debug',
+    })
+<
+
+==============================================================================
+vim:tw=78:ts=4:ft=help:norl:

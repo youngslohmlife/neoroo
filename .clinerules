@@ -1,0 +1,144 @@
+# Neoroo Project Rules and Patterns
+
+## Project Intelligence
+
+This file captures important patterns, preferences, and project intelligence for the Neoroo project. It serves as a learning journal that helps maintain consistency and apply project-specific knowledge across development sessions.
+
+## Naming Conventions
+
+1. **File Naming**
+   - Lua modules: lowercase with underscores (e.g., `buffer_manager.lua`)
+   - Test files: same name as the module with `_spec` suffix (e.g., `buffer_manager_spec.lua`)
+   - Configuration files: lowercase with descriptive names (e.g., `default_config.lua`)
+
+2. **Function Naming**
+   - Public functions: descriptive verbs (e.g., `create_buffer`, `register_command`)
+   - Private functions: prefixed with underscore (e.g., `_parse_response`, `_handle_error`)
+   - Callbacks: suffixed with `_callback` (e.g., `on_buffer_change_callback`)
+
+3. **Variable Naming**
+   - Local variables: lowercase with underscores (e.g., `current_mode`, `buffer_id`)
+   - Module-level variables: same convention as locals
+   - Constants: uppercase with underscores (e.g., `DEFAULT_TIMEOUT`, `MAX_TOKENS`)
+
+## Code Organization
+
+1. **Module Structure**
+   - Each module should have a clear single responsibility
+   - Public API exposed through return table
+   - Private functions and variables kept local
+   - Configuration and state separated from logic
+
+2. **Directory Organization**
+   - `/lua/neoroo/` - Main plugin code
+   - `/lua/neoroo/core/` - Core functionality
+   - `/lua/neoroo/ui/` - User interface components
+   - `/lua/neoroo/providers/` - AI provider implementations
+   - `/lua/neoroo/tools/` - Tool implementations
+   - `/lua/neoroo/modes/` - Mode definitions and handlers
+   - `/lua/neoroo/utils/` - Utility functions
+   - `/tests/` - Test files
+   - `/doc/` - Documentation
+
+## Documentation Patterns
+
+1. **Code Documentation**
+   - Each module should have a header comment explaining its purpose
+   - Public functions should have documentation comments
+   - Complex logic should have explanatory comments
+   - Use LuaDoc format for API documentation
+
+2. **Memory Bank Updates**
+   - Update `activeContext.md` when switching focus areas
+   - Update `progress.md` after completing significant components
+   - Update `systemPatterns.md` when architectural decisions are made
+   - Update `techContext.md` when adding new dependencies or technologies
+
+## Development Workflow
+
+1. **Feature Implementation**
+   - Start with interface design and documentation
+   - Implement core functionality with minimal dependencies
+   - Add tests for critical paths
+   - Integrate with existing components
+   - Update documentation to reflect implementation
+
+2. **Testing Approach**
+   - Unit tests for utility functions and core logic
+   - Integration tests for component interactions
+   - Mock external dependencies (AI providers, filesystem, etc.)
+   - Test both success and failure paths
+
+## Neovim Integration Patterns
+
+1. **Buffer Management**
+   - Create namespaced buffers for plugin content
+   - Use buffer-local variables for state
+   - Handle buffer lifecycle events (create, delete, change)
+   - Respect user's buffer management preferences
+
+2. **Command Registration**
+   - Register commands with `neoroo` prefix
+   - Provide sensible default keymappings
+   - Allow users to override all keymappings
+   - Document commands in help files
+
+3. **UI Interactions**
+   - Follow Vim modal editing paradigm
+   - Use familiar keybindings where appropriate
+   - Provide visual feedback for long-running operations
+   - Support both command-line and buffer-based interactions
+
+## AI Integration Patterns
+
+1. **Provider Abstraction**
+   - Use provider interface for all AI interactions
+   - Handle provider-specific formatting in adapters
+   - Implement fallback mechanisms for failures
+   - Cache responses where appropriate
+
+2. **Context Management**
+   - Collect context based on current mode
+   - Respect token limitations of providers
+   - Prioritize relevant context over comprehensive context
+   - Allow user configuration of context collection
+
+## User Preferences
+
+1. **Configuration**
+   - Use Lua tables for configuration
+   - Provide sensible defaults
+   - Document all configuration options
+   - Validate user configuration
+
+2. **Customization**
+   - Allow customization of UI elements
+   - Support custom modes
+   - Enable extension through hooks
+   - Provide examples for common customizations
+
+## Known Challenges
+
+1. **Performance Considerations**
+   - Large codebases may require special handling
+   - AI operations should be cancelable
+   - Background operations should not block the editor
+   - Provide progress indicators for long-running tasks
+
+2. **Cross-platform Compatibility**
+   - Terminal capabilities vary across platforms
+   - External tool dependencies may not be available everywhere
+   - File paths require platform-specific handling
+   - Consider Windows-specific limitations
+
+## Project-Specific Insights
+
+As development progresses, this section will capture unique insights about the project that aren't obvious from the code or documentation.
+
+1. The Memory Bank system is critical for maintaining project continuity
+2. Neovim's modal editing paradigm offers unique opportunities for AI interaction
+3. Buffer-based UI aligns well with Neovim's philosophy
+
+---
+
+This file will be updated as new patterns and preferences are discovered during development.
