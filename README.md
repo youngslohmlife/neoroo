@@ -40,7 +40,7 @@ git clone --depth 1 https://github.com/nvim-treesitter/nvim-treesitter ~/.local/
 
 # Install Neoroo
 echo "Installing Neoroo..."
-git clone --depth 1 https://github.com/username/neoroo ~/.local/share/nvim/site/pack/plugins/start/neoroo
+git clone --depth 1 https://github.com/youngslohmlife/neoroo ~/.local/share/nvim/site/pack/plugins/start/neoroo
 
 # Create minimal init.lua
 echo "Creating minimal Neovim configuration..."
